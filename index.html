@@ -2,146 +2,232 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ねこを育てよう！</title>
+<title>ふうみのねこゲーム</title>
 
 <style>
+
 body{
-    font-family:sans-serif;
-    background:#ffeef5;
-    text-align:center;
+font-family:sans-serif;
+background:#ffeef5;
+text-align:center;
 }
 
 .game{
-    background:white;
-    width:380px;
-    margin:40px auto;
-    padding:20px;
-    border-radius:20px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+background:white;
+width:420px;
+margin:30px auto;
+padding:20px;
+border-radius:20px;
+box-shadow:0 5px 15px rgba(0,0,0,0.15);
 }
 
 .cat{
-    font-size:80px;
-    transition: transform 0.2s;
+font-size:90px;
+margin:10px;
+transition:transform 0.2s;
 }
 
 button{
-    padding:10px 15px;
-    margin:5px;
-    border:none;
-    border-radius:10px;
-    background:#ff8fb1;
-    color:white;
-    font-size:16px;
-    cursor:pointer;
+padding:10px 15px;
+margin:5px;
+border:none;
+border-radius:10px;
+background:#ff7fab;
+color:white;
+font-size:16px;
+cursor:pointer;
 }
 
 button:hover{
-    background:#ff6f9c;
+background:#ff5f9a;
 }
 
 .bar{
-    height:20px;
-    background:#eee;
-    border-radius:10px;
-    margin:10px 0;
+height:20px;
+background:#eee;
+border-radius:10px;
+margin:10px 0;
 }
 
 .fill{
-    height:100%;
-    background:#7ed957;
-    border-radius:10px;
+height:100%;
+background:#6fd96f;
+border-radius:10px;
 }
-</style>
-</head>
 
+.shop{
+margin-top:20px;
+padding:10px;
+background:#fff6fb;
+border-radius:10px;
+}
+
+</style>
+
+</head>
 <body>
 
 <div class="game">
 
-<h1>🐱 ねこを育てよう！</h1>
+<h1>🐱 ねこ育成ゲーム</h1>
+
+<input id="nameInput" placeholder="ねこの名前">
+<button onclick="setName()">名前を決める</button>
+
+<h2 id="catName">ねこ</h2>
 
 <div id="cat" class="cat">😺</div>
 
+<p>レベル: <span id="level">1</span></p>
+<p>コイン: <span id="coins">0</span> 🪙</p>
+
 <p>おなか</p>
-<div class="bar">
-<div id="hunger" class="fill" style="width:80%"></div>
-</div>
+<div class="bar"><div id="hunger" class="fill" style="width:80%"></div></div>
 
 <p>元気</p>
-<div class="bar">
-<div id="happy" class="fill" style="width:80%"></div>
-</div>
+<div class="bar"><div id="happy" class="fill" style="width:80%"></div></div>
 
-<button onclick="feed()">🍣 ごはん</button>
+<p>経験値</p>
+<div class="bar"><div id="exp" class="fill" style="width:0%"></div></div>
+
+<button onclick="feed()">🍗 ごはん</button>
 <button onclick="play()">🎾 あそぶ</button>
 <button onclick="sleep()">💤 ねる</button>
 
 <p id="message">ねこは元気です！</p>
 
+<div class="shop">
+
+<h3>🛒 おみせ</h3>
+
+<button onclick="buyFood()">🍣 ごはん (5コイン)</button>
+<button onclick="buyToy()">🧸 おもちゃ (10コイン)</button>
+
+</div>
+
 </div>
 
 <script>
 
-let hunger = 80;
-let happy = 80;
+let hunger = 80
+let happy = 80
+let exp = 0
+let level = 1
+let coins = 10
 
 function updateBars(){
-    document.getElementById("hunger").style.width = hunger + "%";
-    document.getElementById("happy").style.width = happy + "%";
+document.getElementById("hunger").style.width = hunger + "%"
+document.getElementById("happy").style.width = happy + "%"
+document.getElementById("exp").style.width = exp + "%"
 }
 
-function feed(){
-    hunger += 15;
-    if(hunger > 100) hunger = 100;
-    document.getElementById("message").textContent = "ねこはごはんを食べました！";
-    bounce();
-    updateBars();
+function updateStats(){
+document.getElementById("level").textContent = level
+document.getElementById("coins").textContent = coins
 }
 
-function play(){
-    happy += 15;
-    hunger -= 5;
-    if(happy > 100) happy = 100;
-    document.getElementById("message").textContent = "ねこは楽しく遊びました！";
-    bounce();
-    updateBars();
+function setName(){
+let name = document.getElementById("nameInput").value
+if(name){
+document.getElementById("catName").textContent = name
 }
-
-function sleep(){
-    happy += 5;
-    hunger -= 5;
-    document.getElementById("message").textContent = "ねこはぐっすり寝ました";
-    bounce();
-    updateBars();
 }
 
 function bounce(){
-    const cat = document.getElementById("cat");
-    cat.style.transform = "scale(1.2)";
-    setTimeout(()=>{
-        cat.style.transform = "scale(1)";
-    },200);
+let cat = document.getElementById("cat")
+cat.style.transform = "scale(1.2)"
+setTimeout(()=>{cat.style.transform="scale(1)"},200)
+}
+
+function gainExp(amount){
+exp += amount
+if(exp >= 100){
+exp = 0
+level++
+coins += 10
+document.getElementById("message").textContent = "レベルアップ！"
+}
+updateStats()
+}
+
+function feed(){
+hunger += 15
+if(hunger>100) hunger=100
+coins += 1
+gainExp(10)
+document.getElementById("message").textContent="ねこはごはんを食べた！"
+bounce()
+updateBars()
+updateStats()
+}
+
+function play(){
+happy += 15
+hunger -= 5
+coins += 2
+gainExp(15)
+document.getElementById("message").textContent="ねこは楽しく遊んだ！"
+bounce()
+updateBars()
+updateStats()
+}
+
+function sleep(){
+happy += 5
+hunger -= 5
+gainExp(5)
+document.getElementById("message").textContent="ねこは寝ました"
+bounce()
+updateBars()
+updateStats()
+}
+
+function buyFood(){
+if(coins >=5){
+coins -=5
+hunger +=20
+document.getElementById("message").textContent="おいしいごはん！"
+}else{
+document.getElementById("message").textContent="コインが足りません"
+}
+updateBars()
+updateStats()
+}
+
+function buyToy(){
+if(coins >=10){
+coins -=10
+happy +=25
+document.getElementById("message").textContent="おもちゃで遊んだ！"
+}else{
+document.getElementById("message").textContent="コインが足りません"
+}
+updateBars()
+updateStats()
 }
 
 setInterval(()=>{
-    hunger -= 2;
-    happy -= 1;
 
-    if(hunger < 0) hunger = 0;
-    if(happy < 0) happy = 0;
+hunger -=2
+happy -=1
 
-    if(hunger < 30){
-        document.getElementById("message").textContent = "おなかがすいています！";
-    }
+if(hunger<0) hunger=0
+if(happy<0) happy=0
 
-    if(happy < 30){
-        document.getElementById("message").textContent = "あそびたそうです！";
-    }
+if(hunger <30){
+document.getElementById("message").textContent="おなかがすいている！"
+}
 
-    updateBars();
+if(happy <30){
+document.getElementById("message").textContent="遊びたいみたい！"
+}
 
-},4000);
+updateBars()
+
+},4000)
+
+updateBars()
+updateStats()
 
 </script>
 
