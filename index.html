@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ねこ育成ゲームPRO</title>
+<title>ねこ育成ゲームPRO+</title>
 
 <style>
 
@@ -22,8 +22,6 @@ border-radius:20px;
 box-shadow:0 10px 20px rgba(0,0,0,0.2);
 }
 
-/* 猫 */
-
 .cat{
 font-size:90px;
 animation:bounce 2s infinite;
@@ -34,8 +32,6 @@ animation:bounce 2s infinite;
 50%{transform:translateY(-10px)}
 100%{transform:translateY(0)}
 }
-
-/* バー */
 
 .bar{
 height:20px;
@@ -64,6 +60,21 @@ button:hover{
 background:#ff5f9a;
 }
 
+#fishGame{
+margin-top:15px;
+display:none;
+background:#e8f9ff;
+padding:10px;
+border-radius:10px;
+}
+
+#fish{
+font-size:40px;
+cursor:pointer;
+display:inline-block;
+transition:transform 0.5s;
+}
+
 </style>
 </head>
 
@@ -71,7 +82,7 @@ background:#ff5f9a;
 
 <div class="game">
 
-<h1>🐱ねこ育成ゲームPRO</h1>
+<h1>🐱ねこ育成ゲームPRO+</h1>
 
 <div id="cat" class="cat">🐱</div>
 
@@ -82,6 +93,7 @@ background:#ff5f9a;
 
 <p>レベル <span id="level">1</span></p>
 <p>コイン <span id="coins">0</span></p>
+<p>フード 🍖 <span id="food">0</span></p>
 
 <p>おなか</p>
 <div class="bar"><div id="hunger" class="fill" style="width:80%"></div></div>
@@ -92,8 +104,21 @@ background:#ff5f9a;
 <button onclick="feed()">ごはん</button>
 <button onclick="play()">遊ぶ</button>
 <button onclick="sleep()">寝る</button>
+<button onclick="buyFood()">フード購入(5コイン)</button>
+<button onclick="openFish()">魚つり</button>
 
 <p id="msg"></p>
+
+<div id="fishGame">
+
+<p>🐟魚をクリックしてフードゲット！</p>
+
+<div id="fish">🐟</div>
+
+<br>
+<button onclick="closeFish()">やめる</button>
+
+</div>
 
 </div>
 
@@ -104,6 +129,7 @@ name:"ねこ",
 hunger:80,
 happy:80,
 coins:10,
+food:3,
 level:1
 }
 
@@ -113,6 +139,7 @@ document.getElementById("hunger").style.width=game.hunger+"%"
 document.getElementById("happy").style.width=game.happy+"%"
 
 document.getElementById("coins").textContent=game.coins
+document.getElementById("food").textContent=game.food
 document.getElementById("level").textContent=game.level
 document.getElementById("catName").textContent=game.name
 
@@ -122,8 +149,13 @@ save()
 
 function feed(){
 
+if(game.food<=0){
+msg("フードがない！")
+return
+}
+
+game.food--
 game.hunger+=20
-game.coins+=1
 
 if(game.hunger>100)game.hunger=100
 
@@ -155,6 +187,22 @@ update()
 
 }
 
+function buyFood(){
+
+if(game.coins<5){
+msg("コインが足りない！")
+return
+}
+
+game.coins-=5
+game.food+=3
+
+msg("フードを買った！")
+
+update()
+
+}
+
 function setName(){
 
 let n=document.getElementById("nameInput").value
@@ -172,7 +220,46 @@ document.getElementById("msg").textContent=t
 
 }
 
-/* 昼夜システム */
+/* 魚ミニゲーム */
+
+function openFish(){
+
+document.getElementById("fishGame").style.display="block"
+
+}
+
+function closeFish(){
+
+document.getElementById("fishGame").style.display="none"
+
+}
+
+function catchFish(){
+
+game.food+=1
+game.coins+=1
+
+msg("魚ゲット！フード+1")
+
+update()
+
+}
+
+document.getElementById("fish").onclick=catchFish
+
+function fishMove(){
+
+let fish=document.getElementById("fish")
+
+let x=Math.random()*200-100
+
+fish.style.transform="translateX("+x+"px)"
+
+}
+
+setInterval(fishMove,1000)
+
+/* 昼夜 */
 
 setInterval(()=>{
 
