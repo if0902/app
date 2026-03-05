@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ねこ育成ゲーム PRO</title>
+<title>超本格ねこゲーム</title>
 
 <style>
 
@@ -14,22 +14,22 @@ background:#87ceeb;
 }
 
 .game{
-width:520px;
+width:600px;
 margin:auto;
 background:white;
 padding:20px;
 border-radius:20px;
-box-shadow:0 10px 20px rgba(0,0,0,0.2);
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
 .cat{
-font-size:90px;
+font-size:100px;
 animation:bounce 2s infinite;
 }
 
 @keyframes bounce{
 0%{transform:translateY(0)}
-50%{transform:translateY(-12px)}
+50%{transform:translateY(-15px)}
 100%{transform:translateY(0)}
 }
 
@@ -37,7 +37,7 @@ animation:bounce 2s infinite;
 height:18px;
 background:#eee;
 border-radius:10px;
-margin:6px;
+margin:5px;
 }
 
 .fill{
@@ -47,7 +47,7 @@ border-radius:10px;
 }
 
 button{
-padding:8px 12px;
+padding:8px 14px;
 margin:4px;
 border:none;
 border-radius:10px;
@@ -64,17 +64,22 @@ background:#ff5f9a;
 margin-top:10px;
 padding:10px;
 border-radius:10px;
+background:#ffeef5;
 }
 
-#fishingGame{
+.furniture{
+font-size:30px;
+margin:5px;
+}
+
+#fishGame{
 display:none;
-margin-top:10px;
+margin-top:15px;
 }
 
 .fish{
 font-size:40px;
 cursor:pointer;
-position:relative;
 }
 
 </style>
@@ -84,7 +89,9 @@ position:relative;
 
 <div class="game">
 
-<h1>🐱ねこ育成ゲーム PRO</h1>
+<h1>🐱 超本格ねこゲーム</h1>
+
+<p>天気 <span id="weather">☀️</span></p>
 
 <div id="cat" class="cat">🐱</div>
 
@@ -106,29 +113,24 @@ position:relative;
 <p>元気</p>
 <div class="bar"><div id="happy" class="fill" style="width:80%"></div></div>
 
-<button onclick="feed()">🍗ごはん</button>
-<button onclick="play()">🎾遊ぶ</button>
-<button onclick="sleep()">💤寝る</button>
+<button onclick="feed()">🍗 ごはん</button>
+<button onclick="play()">🎾 遊ぶ</button>
+<button onclick="sleep()">💤 寝る</button>
 
 <p id="msg"></p>
 
-<h3>🏠部屋カスタマイズ</h3>
+<h3>🏠 部屋</h3>
 
-<div class="room" id="room">
+<div class="room" id="room"></div>
 
-<button onclick="setRoom('pink')">ピンク</button>
-<button onclick="setRoom('blue')">ブルー</button>
-<button onclick="setRoom('green')">グリーン</button>
+<button onclick="buyBed()">🛏 ベッド (20)</button>
+<button onclick="buyToy()">🧸 おもちゃ (10)</button>
 
-</div>
+<h3>🐟 魚釣りゲーム</h3>
 
-<h3>🐟魚釣りミニゲーム</h3>
+<button onclick="startFish()">釣りをする</button>
 
-<button onclick="startFishing()">釣りをする</button>
-
-<div id="fishingGame">
-
-<p>魚をクリック！</p>
+<div id="fishGame">
 
 <div id="fish" class="fish" onclick="catchFish()">🐟</div>
 
@@ -147,7 +149,7 @@ coins:10,
 food:3,
 hunger:80,
 happy:80,
-stage:1
+furniture:[]
 }
 
 let score=0
@@ -155,14 +157,15 @@ let score=0
 function update(){
 
 document.getElementById("catName").textContent=game.name
-document.getElementById("coins").textContent=game.coins
 document.getElementById("level").textContent=game.level
+document.getElementById("coins").textContent=game.coins
 document.getElementById("food").textContent=game.food
 
 document.getElementById("hunger").style.width=game.hunger+"%"
 document.getElementById("happy").style.width=game.happy+"%"
 
 updateCat()
+drawRoom()
 
 save()
 
@@ -178,6 +181,23 @@ else cat.textContent="🦁"
 
 }
 
+function msg(t){
+
+document.getElementById("msg").textContent=t
+
+}
+
+function setName(){
+
+let n=document.getElementById("nameInput").value
+
+if(n){
+game.name=n
+update()
+}
+
+}
+
 function feed(){
 
 if(game.food<=0){
@@ -187,12 +207,11 @@ return
 
 game.food--
 game.hunger+=20
-
 if(game.hunger>100)game.hunger=100
 
-msg("ごはんを食べた")
-
 gain()
+
+msg("ごはんを食べた")
 
 update()
 
@@ -200,12 +219,12 @@ update()
 
 function play(){
 
-game.happy+=20
+game.happy+=15
 game.coins+=1
 
-msg("楽しく遊んだ")
-
 gain()
+
+msg("楽しく遊んだ")
 
 update()
 
@@ -223,43 +242,67 @@ update()
 function gain(){
 
 if(Math.random()<0.3){
+
 game.level++
 msg("レベルアップ！")
-}
 
 }
 
-function setName(){
+}
 
-let n=document.getElementById("nameInput").value
-if(n){
-game.name=n
+function buyBed(){
+
+if(game.coins>=20){
+
+game.coins-=20
+game.furniture.push("bed")
+
 update()
+
+}
+
+}
+
+function buyToy(){
+
+if(game.coins>=10){
+
+game.coins-=10
+game.furniture.push("toy")
+
+update()
+
 }
 
 }
 
-function msg(t){
-
-document.getElementById("msg").textContent=t
-
-}
-
-function setRoom(color){
+function drawRoom(){
 
 let room=document.getElementById("room")
 
-if(color=="pink")room.style.background="#ffd6ec"
-if(color=="blue")room.style.background="#d6ecff"
-if(color=="green")room.style.background="#d6ffd9"
+room.innerHTML=""
+
+game.furniture.forEach(f=>{
+
+let el=document.createElement("span")
+
+if(f=="bed") el.textContent="🛏"
+if(f=="toy") el.textContent="🧸"
+
+el.className="furniture"
+
+room.appendChild(el)
+
+})
 
 }
 
-function startFishing(){
+function startFish(){
 
 score=0
+
 document.getElementById("score").textContent=0
-document.getElementById("fishingGame").style.display="block"
+document.getElementById("fishGame").style.display="block"
 
 moveFish()
 
@@ -280,12 +323,45 @@ function moveFish(){
 
 let fish=document.getElementById("fish")
 
-let x=Math.random()*200-100
+let x=Math.random()*300-150
 let y=Math.random()*80
 
 fish.style.transform="translate("+x+"px,"+y+"px)"
 
 }
+
+setInterval(moveFish,1200)
+
+/* 天気 */
+
+function updateWeather(){
+
+let r=Math.random()
+
+let w=document.getElementById("weather")
+
+if(r<0.5) w.textContent="☀️"
+else if(r<0.8) w.textContent="☁️"
+else w.textContent="🌧"
+
+}
+
+setInterval(updateWeather,20000)
+
+/* 昼夜 */
+
+setInterval(()=>{
+
+let hour=new Date().getHours()
+
+if(hour>=18 || hour<6)
+document.body.style.background="#1e2a44"
+else
+document.body.style.background="#87ceeb"
+
+},5000)
+
+/* ステータス減少 */
 
 setInterval(()=>{
 
@@ -299,32 +375,25 @@ update()
 
 },5000)
 
+/* セーブ */
+
 function save(){
 
-localStorage.setItem("catgamepro",JSON.stringify(game))
+localStorage.setItem("supercat",JSON.stringify(game))
 
 }
 
 function load(){
 
-let data=localStorage.getItem("catgamepro")
+let data=localStorage.getItem("supercat")
 
 if(data){
+
 game=JSON.parse(data)
-}
 
 }
 
-setInterval(()=>{
-
-let hour=new Date().getHours()
-
-if(hour>=18 || hour<6)
-document.body.style.background="#1e2a44"
-else
-document.body.style.background="#87ceeb"
-
-},5000)
+}
 
 load()
 update()
