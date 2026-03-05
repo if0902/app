@@ -2,84 +2,68 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>超本格ねこゲーム</title>
+<title>ふうみのねこゲーム</title>
 
 <style>
 
 body{
 font-family:sans-serif;
+background:linear-gradient(#87CEEB,#e0f7ff);
 text-align:center;
-transition:background 1s;
-background:#87ceeb;
+margin:0;
 }
 
-.game{
-width:600px;
+#game{
+max-width:700px;
 margin:auto;
-background:white;
 padding:20px;
+}
+
+#room{
+background:white;
 border-radius:20px;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
+padding:20px;
+box-shadow:0 10px 20px rgba(0,0,0,0.2);
+margin-top:20px;
 }
 
-.cat{
-font-size:100px;
-animation:bounce 2s infinite;
-}
-
-@keyframes bounce{
-0%{transform:translateY(0)}
-50%{transform:translateY(-15px)}
-100%{transform:translateY(0)}
-}
-
-.bar{
-height:18px;
-background:#eee;
-border-radius:10px;
-margin:5px;
-}
-
-.fill{
-height:100%;
-background:#6fd96f;
-border-radius:10px;
+#cat{
+font-size:120px;
+transition:transform 1s;
 }
 
 button{
-padding:8px 14px;
-margin:4px;
+padding:10px 20px;
+margin:5px;
 border:none;
 border-radius:10px;
-background:#ff7fab;
+background:#ff9ecb;
 color:white;
+font-size:16px;
 cursor:pointer;
 }
 
 button:hover{
-background:#ff5f9a;
-}
-
-.room{
-margin-top:10px;
-padding:10px;
-border-radius:10px;
-background:#ffeef5;
-}
-
-.furniture{
-font-size:30px;
-margin:5px;
+background:#ff7fb8;
 }
 
 #fishGame{
 display:none;
-margin-top:15px;
+margin-top:20px;
+background:#d8f4ff;
+padding:20px;
+border-radius:20px;
 }
 
-.fish{
-font-size:40px;
+#fish{
+font-size:50px;
+position:relative;
 cursor:pointer;
+}
+
+.night{
+background:linear-gradient(#001848,#030d2c);
+color:white;
 }
 
 </style>
@@ -87,54 +71,43 @@ cursor:pointer;
 
 <body>
 
-<div class="game">
+<div id="game">
 
-<h1>🐱 超本格ねこゲーム</h1>
-
-<p>天気 <span id="weather">☀️</span></p>
-
-<div id="cat" class="cat">🐱</div>
+<h1>🐱 ふうみのねこゲーム</h1>
 
 <p>
-名前:
-<input id="nameInput">
-<button onclick="setName()">決定</button>
+レベル <span id="level">1</span> |
+コイン <span id="coins">0</span>
 </p>
 
-<h2 id="catName">ねこ</h2>
+<p>
+おなか <span id="hunger">80</span> |
+しあわせ <span id="happy">80</span>
+</p>
 
-<p>レベル <span id="level">1</span></p>
-<p>コイン <span id="coins">10</span> 🪙</p>
-<p>ごはん <span id="food">3</span> 🍗</p>
+<p>時間 <span id="time">昼</span></p>
 
-<p>おなか</p>
-<div class="bar"><div id="hunger" class="fill" style="width:80%"></div></div>
+<div id="room">
 
-<p>元気</p>
-<div class="bar"><div id="happy" class="fill" style="width:80%"></div></div>
+<div id="cat">🐱</div>
 
-<button onclick="feed()">🍗 ごはん</button>
-<button onclick="play()">🎾 遊ぶ</button>
-<button onclick="sleep()">💤 寝る</button>
+<div>
+<button onclick="feed()">🍖 ごはん</button>
+<button onclick="play()">🎾 あそぶ</button>
+<button onclick="sleep()">😴 ねる</button>
+<button onclick="openFish()">🐟 つり</button>
+</div>
 
-<p id="msg"></p>
-
-<h3>🏠 部屋</h3>
-
-<div class="room" id="room"></div>
-
-<button onclick="buyBed()">🛏 ベッド (20)</button>
-<button onclick="buyToy()">🧸 おもちゃ (10)</button>
-
-<h3>🐟 魚釣りゲーム</h3>
-
-<button onclick="startFish()">釣りをする</button>
+</div>
 
 <div id="fishGame">
 
-<div id="fish" class="fish" onclick="catchFish()">🐟</div>
+<h2>🐟 魚釣りミニゲーム</h2>
+<p>魚をクリック！</p>
 
-<p>スコア <span id="score">0</span></p>
+<div id="fish">🐟</div>
+
+<button onclick="closeFish()">やめる</button>
 
 </div>
 
@@ -142,261 +115,170 @@ cursor:pointer;
 
 <script>
 
-let game={
-name:"ねこ",
-level:1,
-coins:10,
-food:3,
+let game=JSON.parse(localStorage.getItem("catgame"))||{
+
+coins:0,
 hunger:80,
 happy:80,
-furniture:[]
+level:1,
+exp:0,
+time:12,
+stage:0
+
 }
 
-let score=0
+function save(){
 
-function update(){
+localStorage.setItem("catgame",JSON.stringify(game))
 
-document.getElementById("catName").textContent=game.name
-document.getElementById("level").textContent=game.level
+}
+
+function updateUI(){
+
 document.getElementById("coins").textContent=game.coins
-document.getElementById("food").textContent=game.food
-
-document.getElementById("hunger").style.width=game.hunger+"%"
-document.getElementById("happy").style.width=game.happy+"%"
-
-updateCat()
-drawRoom()
-
-save()
-
-}
-
-function updateCat(){
+document.getElementById("hunger").textContent=game.hunger
+document.getElementById("happy").textContent=game.happy
+document.getElementById("level").textContent=game.level
 
 let cat=document.getElementById("cat")
 
-if(game.level<5) cat.textContent="🐱"
-else if(game.level<10) cat.textContent="🐈"
-else cat.textContent="🦁"
+if(game.stage==0) cat.textContent="🐱"
+if(game.stage==1) cat.textContent="😺"
+if(game.stage==2) cat.textContent="😸"
+
+if(game.time>=6 && game.time<18){
+document.body.classList.remove("night")
+document.getElementById("time").textContent="昼"
+}else{
+document.body.classList.add("night")
+document.getElementById("time").textContent="夜"
+}
 
 }
 
-function msg(t){
+function gainExp(n){
 
-document.getElementById("msg").textContent=t
+game.exp+=n
 
-}
+if(game.exp>=10){
 
-function setName(){
+game.exp=0
+game.level++
 
-let n=document.getElementById("nameInput").value
+if(game.level==5) game.stage=1
+if(game.level==10) game.stage=2
 
-if(n){
-game.name=n
-update()
 }
 
 }
 
 function feed(){
 
-if(game.food<=0){
-msg("ごはんがありません")
+if(game.coins<1){
+alert("コインがない！")
 return
 }
 
-game.food--
+game.coins--
 game.hunger+=20
-if(game.hunger>100)game.hunger=100
 
-gain()
+if(game.hunger>100) game.hunger=100
 
-msg("ごはんを食べた")
-
-update()
+gainExp(2)
+save()
+updateUI()
 
 }
 
 function play(){
 
 game.happy+=15
-game.coins+=1
+game.hunger-=10
 
-gain()
+gainExp(2)
 
-msg("楽しく遊んだ")
-
-update()
+save()
+updateUI()
 
 }
 
 function sleep(){
 
 game.happy+=5
-msg("ぐっすり寝た")
+game.time+=6
 
-update()
+if(game.time>=24) game.time-=24
 
-}
-
-function gain(){
-
-if(Math.random()<0.3){
-
-game.level++
-msg("レベルアップ！")
+save()
+updateUI()
 
 }
 
-}
+function openFish(){
 
-function buyBed(){
-
-if(game.coins>=20){
-
-game.coins-=20
-game.furniture.push("bed")
-
-update()
-
-}
-
-}
-
-function buyToy(){
-
-if(game.coins>=10){
-
-game.coins-=10
-game.furniture.push("toy")
-
-update()
-
-}
-
-}
-
-function drawRoom(){
-
-let room=document.getElementById("room")
-
-room.innerHTML=""
-
-game.furniture.forEach(f=>{
-
-let el=document.createElement("span")
-
-if(f=="bed") el.textContent="🛏"
-if(f=="toy") el.textContent="🧸"
-
-el.className="furniture"
-
-room.appendChild(el)
-
-})
-
-}
-
-function startFish(){
-
-score=0
-
-document.getElementById("score").textContent=0
 document.getElementById("fishGame").style.display="block"
 
-moveFish()
+}
+
+function closeFish(){
+
+document.getElementById("fishGame").style.display="none"
 
 }
 
 function catchFish(){
 
-score++
-game.coins++
+game.coins+=3
+gainExp(3)
 
-document.getElementById("score").textContent=score
-
-moveFish()
+save()
+updateUI()
 
 }
 
-function moveFish(){
+document.getElementById("fish").onclick=catchFish
+
+function fishMove(){
 
 let fish=document.getElementById("fish")
 
-let x=Math.random()*300-150
-let y=Math.random()*80
+let x=Math.random()*200-100
+let y=Math.random()*60
 
 fish.style.transform="translate("+x+"px,"+y+"px)"
 
 }
 
-setInterval(moveFish,1200)
+setInterval(fishMove,1000)
 
-/* 天気 */
+function catMove(){
 
-function updateWeather(){
+let cat=document.getElementById("cat")
 
-let r=Math.random()
+let x=Math.random()*60-30
 
-let w=document.getElementById("weather")
-
-if(r<0.5) w.textContent="☀️"
-else if(r<0.8) w.textContent="☁️"
-else w.textContent="🌧"
+cat.style.transform="translateX("+x+"px)"
 
 }
 
-setInterval(updateWeather,20000)
+setInterval(catMove,3000)
 
-/* 昼夜 */
+function decay(){
 
-setInterval(()=>{
-
-let hour=new Date().getHours()
-
-if(hour>=18 || hour<6)
-document.body.style.background="#1e2a44"
-else
-document.body.style.background="#87ceeb"
-
-},5000)
-
-/* ステータス減少 */
-
-setInterval(()=>{
-
-game.hunger-=2
+game.hunger-=1
 game.happy-=1
 
-if(game.hunger<0)game.hunger=0
-if(game.happy<0)game.happy=0
+if(game.hunger<0) game.hunger=0
+if(game.happy<0) game.happy=0
 
-update()
-
-},5000)
-
-/* セーブ */
-
-function save(){
-
-localStorage.setItem("supercat",JSON.stringify(game))
+updateUI()
+save()
 
 }
 
-function load(){
+setInterval(decay,5000)
 
-let data=localStorage.getItem("supercat")
-
-if(data){
-
-game=JSON.parse(data)
-
-}
-
-}
-
-load()
-update()
+updateUI()
 
 </script>
 
