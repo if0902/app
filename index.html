@@ -2,27 +2,25 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ねこ育成ゲームPRO</title>
+<title>ねこ育成ゲーム PRO</title>
 
 <style>
 
 body{
 font-family:sans-serif;
-background:#87ceeb;
-transition:background 1s;
 text-align:center;
+transition:background 1s;
+background:#87ceeb;
 }
 
 .game{
-width:500px;
+width:520px;
 margin:auto;
 background:white;
 padding:20px;
 border-radius:20px;
 box-shadow:0 10px 20px rgba(0,0,0,0.2);
 }
-
-/* 猫 */
 
 .cat{
 font-size:90px;
@@ -31,17 +29,15 @@ animation:bounce 2s infinite;
 
 @keyframes bounce{
 0%{transform:translateY(0)}
-50%{transform:translateY(-10px)}
+50%{transform:translateY(-12px)}
 100%{transform:translateY(0)}
 }
 
-/* バー */
-
 .bar{
-height:20px;
+height:18px;
 background:#eee;
 border-radius:10px;
-margin:5px;
+margin:6px;
 }
 
 .fill{
@@ -52,7 +48,7 @@ border-radius:10px;
 
 button{
 padding:8px 12px;
-margin:5px;
+margin:4px;
 border:none;
 border-radius:10px;
 background:#ff7fab;
@@ -64,6 +60,23 @@ button:hover{
 background:#ff5f9a;
 }
 
+.room{
+margin-top:10px;
+padding:10px;
+border-radius:10px;
+}
+
+#fishingGame{
+display:none;
+margin-top:10px;
+}
+
+.fish{
+font-size:40px;
+cursor:pointer;
+position:relative;
+}
+
 </style>
 </head>
 
@@ -71,17 +84,21 @@ background:#ff5f9a;
 
 <div class="game">
 
-<h1>🐱ねこ育成ゲームPRO</h1>
+<h1>🐱ねこ育成ゲーム PRO</h1>
 
 <div id="cat" class="cat">🐱</div>
 
-<p>名前: <input id="nameInput">
-<button onclick="setName()">決定</button></p>
+<p>
+名前:
+<input id="nameInput">
+<button onclick="setName()">決定</button>
+</p>
 
 <h2 id="catName">ねこ</h2>
 
 <p>レベル <span id="level">1</span></p>
-<p>コイン <span id="coins">0</span></p>
+<p>コイン <span id="coins">10</span> 🪙</p>
+<p>ごはん <span id="food">3</span> 🍗</p>
 
 <p>おなか</p>
 <div class="bar"><div id="hunger" class="fill" style="width:80%"></div></div>
@@ -89,11 +106,35 @@ background:#ff5f9a;
 <p>元気</p>
 <div class="bar"><div id="happy" class="fill" style="width:80%"></div></div>
 
-<button onclick="feed()">ごはん</button>
-<button onclick="play()">遊ぶ</button>
-<button onclick="sleep()">寝る</button>
+<button onclick="feed()">🍗ごはん</button>
+<button onclick="play()">🎾遊ぶ</button>
+<button onclick="sleep()">💤寝る</button>
 
 <p id="msg"></p>
+
+<h3>🏠部屋カスタマイズ</h3>
+
+<div class="room" id="room">
+
+<button onclick="setRoom('pink')">ピンク</button>
+<button onclick="setRoom('blue')">ブルー</button>
+<button onclick="setRoom('green')">グリーン</button>
+
+</div>
+
+<h3>🐟魚釣りミニゲーム</h3>
+
+<button onclick="startFishing()">釣りをする</button>
+
+<div id="fishingGame">
+
+<p>魚をクリック！</p>
+
+<div id="fish" class="fish" onclick="catchFish()">🐟</div>
+
+<p>スコア <span id="score">0</span></p>
+
+</div>
 
 </div>
 
@@ -101,33 +142,57 @@ background:#ff5f9a;
 
 let game={
 name:"ねこ",
+level:1,
+coins:10,
+food:3,
 hunger:80,
 happy:80,
-coins:10,
-level:1
+stage:1
 }
 
+let score=0
+
 function update(){
+
+document.getElementById("catName").textContent=game.name
+document.getElementById("coins").textContent=game.coins
+document.getElementById("level").textContent=game.level
+document.getElementById("food").textContent=game.food
 
 document.getElementById("hunger").style.width=game.hunger+"%"
 document.getElementById("happy").style.width=game.happy+"%"
 
-document.getElementById("coins").textContent=game.coins
-document.getElementById("level").textContent=game.level
-document.getElementById("catName").textContent=game.name
+updateCat()
 
 save()
 
 }
 
+function updateCat(){
+
+let cat=document.getElementById("cat")
+
+if(game.level<5) cat.textContent="🐱"
+else if(game.level<10) cat.textContent="🐈"
+else cat.textContent="🦁"
+
+}
+
 function feed(){
 
+if(game.food<=0){
+msg("ごはんがありません")
+return
+}
+
+game.food--
 game.hunger+=20
-game.coins+=1
 
 if(game.hunger>100)game.hunger=100
 
-msg("ごはんを食べた！")
+msg("ごはんを食べた")
+
+gain()
 
 update()
 
@@ -136,11 +201,11 @@ update()
 function play(){
 
 game.happy+=20
-game.coins+=2
+game.coins+=1
 
-if(game.happy>100)game.happy=100
+msg("楽しく遊んだ")
 
-msg("楽しく遊んだ！")
+gain()
 
 update()
 
@@ -155,10 +220,18 @@ update()
 
 }
 
+function gain(){
+
+if(Math.random()<0.3){
+game.level++
+msg("レベルアップ！")
+}
+
+}
+
 function setName(){
 
 let n=document.getElementById("nameInput").value
-
 if(n){
 game.name=n
 update()
@@ -172,43 +245,86 @@ document.getElementById("msg").textContent=t
 
 }
 
-/* 昼夜システム */
+function setRoom(color){
 
-setInterval(()=>{
+let room=document.getElementById("room")
 
-let hour=new Date().getHours()
-
-if(hour>=18 || hour<6){
-
-document.body.style.background="#1e2a44"
-
-}else{
-
-document.body.style.background="#87ceeb"
+if(color=="pink")room.style.background="#ffd6ec"
+if(color=="blue")room.style.background="#d6ecff"
+if(color=="green")room.style.background="#d6ffd9"
 
 }
 
-},5000)
+function startFishing(){
 
-/* セーブ */
+score=0
+document.getElementById("score").textContent=0
+document.getElementById("fishingGame").style.display="block"
+
+moveFish()
+
+}
+
+function catchFish(){
+
+score++
+game.coins++
+
+document.getElementById("score").textContent=score
+
+moveFish()
+
+}
+
+function moveFish(){
+
+let fish=document.getElementById("fish")
+
+let x=Math.random()*200-100
+let y=Math.random()*80
+
+fish.style.transform="translate("+x+"px,"+y+"px)"
+
+}
+
+setInterval(()=>{
+
+game.hunger-=2
+game.happy-=1
+
+if(game.hunger<0)game.hunger=0
+if(game.happy<0)game.happy=0
+
+update()
+
+},5000)
 
 function save(){
 
-localStorage.setItem("catgame",JSON.stringify(game))
+localStorage.setItem("catgamepro",JSON.stringify(game))
 
 }
 
 function load(){
 
-let data=localStorage.getItem("catgame")
+let data=localStorage.getItem("catgamepro")
 
 if(data){
-
 game=JSON.parse(data)
-
 }
 
 }
+
+setInterval(()=>{
+
+let hour=new Date().getHours()
+
+if(hour>=18 || hour<6)
+document.body.style.background="#1e2a44"
+else
+document.body.style.background="#87ceeb"
+
+},5000)
 
 load()
 update()
